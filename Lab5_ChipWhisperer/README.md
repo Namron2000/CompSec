@@ -1,617 +1,361 @@
-Computer Security Lab 5: ChipWhisperer
-====
+# Lab 5 lab return template 
 
-## ToC
-* [Preliminary tasks](#Preliminary-tasks)
-* [Introduction](#Introduction)
-    * [Practical arrangements of this lab](#Practical-arrangements-of-this-lab)
-    * [Short intro to power analysis](#Short-intro-to-power-analysis)
-    * [Grading](#Grading)
+Name ```LIEUTAUD Emy ```
 
-* [Setting up](#Setting-up)
-    * [Hardware setup](#Hardware-setup)
-    * [Software setup](#Software-setup)
+Student ID ``` 2757995```
 
-* [Tasks](#Tasks)
-  * [Task 1](#Task-1)
-  * [Task 2](#Task-2)
-  * [Task 3](#Task-3)
-  * [Task 4](#Task-4)
+Participated in tasks ```1 to 4```
 
-# Preliminary tasks
+...
 
-Get familiar with following background information of ChipWhisperer and power analysis
+Name ```BECKER Norman ```
 
-* [Power analysis on wikipedia](https://en.wikipedia.org/wiki/Power_analysis)
-* [ChipWhisperer's Introduction to Side-Channel Power Analysis training video](https://www.youtube.com/watch?v=OlX-p4AGhWs)
-  * 00:00-20:00, very basic things about what is encryption (You can easily skip this if you already handle the basics)
-  * About 20:00-30:00, encryption and hardware
-  * About 30:00-55:00, very detailed explanation how power analysis attack against AES works
-  * About 55:00-end, explanation how this attack applies to real world and demonstration of the usage of ChipWhisperer tools and software
-  * If you cannot watch the video, about same information than important parts of this video can be found in heavily compressed form at next article [Correlation Power Analysis](http://wiki.newae.com/Correlation_Power_Analysis)
+Student ID ```2756886 ```
 
-# Introduction
+Participated in tasks ```1 to 4 ```
 
-This week’s theme is hardware security so also this lab considers hardware security by giving examples of side channel attacks. In this lab you will be using ChipWhisperer hardware and tools to perform side channel experiments.
+Add all your group member's names and student IDs here. If you continue the tasks at home, you can work with different people. Please mark who participated in which tasks.
 
-[Chipshisperer](https://newae.com/tools/chipwhisperer/) is an open source toolchain dedicated to hardware security research. ChipWhisperer project intends to make easy start on hardware security experimenting for anybody who interested about it.
+# Task 1
+### Inspecting power differences of operations
 
-ChipWhisperer device consists of 2 parts:
-* Capture board is specialized hardware which is able to capture traces from target
-* Target board is just some kind of processor which is programmed to perform some kind of secure operation
+Replace the following screenshot.
 
-Basic idea of this lab is simple: We have target device which runs secure operations and we want to reveal information about those operations by measuring and analysing power consumption of target device. 
+It should contain your custom power trace where you execute any amount of nops AND muls. You need to execute atleast 10 lines worth of each command and in total atleast 40 lines worth of assembly code. You are not required to execute the commands in 10 line chuncks and you can execute also any other assembly commands besides nop and mul.
 
-This lab exercise intends to give examples of different ways to hack into hardware. There is no guarantee that exactly these hacking examples would be working or practical in real life situations, but main goal is to educate students about possibilities of hardware hacking.
+Please have your screenshots roughly in the same scale as the placeholders. If your whole trace doesn't fit to that scale then you can of course take a larger picture.
 
-This "Introduction" section contains background information about power analysis, information of practical arrangements of this lab and information about grading information of different tasks. Next "Setting up" section contains all instructions what you are required to do before you can start making tasks. Section "Tasks" contains all 4 tasks and instructions how to do them.
+Remember also add textual descriptions of images if they are needed.
 
-## Practical arrangements of this lab
+#### Trace with your custom set of operations
+![](images/power_trace_view.PNG  "Custom trace")
+*The instruction is: 15 x NOP, 15 x MUL, 10 x NOP, 10 x MUL, 10 x NOP, 10 x MUL, 10 x NOP, 10 x MUL, 10 x NOP, 10 x MUL. At the beginning, the code starts to be executed (trigger_high function). Then, we can see the the sequence of instructions executed in the right order. The MUL requires more power than the NOP because multiplications are more complexe than no operation. After the instructions (around 700Pts), the specific code is ended (trigger_low function).*
 
-This lab is little bit different than others because tasks require the usage of external device. Number of devices are limited which causes some difficulties to arrangements.
+### Breaking AES
 
-* Students are encouraged to do labwork in groups of 2 or 3 if possible. 
-* Students are encouraged to borrow device do the lab ahead of schedule to balance load on actual lab week
-* We try to arrange loaning times so that everyone would have chance to hold device at least couple of days if they want.
+**Paste the screenshot of solved key here**
 
-## Short intro to power analysis
+![ ](images/solved_key.PNG "Solved key")
 
-Power analysis is a branch of side channel attacks where power consumption data is used to study hardware device to extract some secret information from it. Power analysis attack is non-invasive by nature because it usually consists of sending varying but valid input data to the device and then comparing the power consumption of different runs with each other or power consumption models.
-
-More information about principles of power analysis can be found from [Wikipedia](https://en.wikipedia.org/wiki/Power_analysis) and more ChipWhisperer-related information about CPA can be found from manufacturers [wiki](http://wiki.newae.com/Correlation_Power_Analysis)
-
-## Grading
-
-Task of this lab are divided to 4 different tasks which have corresponding grades in table below. Notice that *Good-to-have skills* are only directional descriptions about required skill levels.
-
-Task| Grade/Level | Description | Good-to-have skills
---|:--:|--|--
-1|2|Getting started with ChipWhisperer, inspecting power traces and breaking AES|Basic understanding of C and Assembly code, reading and understanding technical articles, basic understanding of statistics
-2|3|Password bypass with timing attack and breaking RSA with power and timing analysis|Simple Python coding
-3|4|Glitching|Python skills, patience, C and Assembly
-4|5|Several alternatives for advanced experimenting|Different advanced skills depending on your project
-
----
-
-# Setting up
-
-Due to external device and specialized software, this lab needs some extra work to set everything up.
-
-## Hardware setup
-
-![Image of ChipWhisperer package](pictures/chipwhisperer_package.jpg "ChipWhisperer package items")
-
-Device package should contain next items
-* ChipWhisperer Lite 1173 Main board
-* CW303 XMEGA Target board
-* Serial cable
-* 2 SMA cables
-* USB cable
-
-Do next steps to prepare device for usage
-* Connect serial cable to serial ports of main board and target board
-* Connect SMA cable to measure ports of main board and target board
-    * If you are doing glitching-related tasks, you must connect also glitch ports with second SMA cable
-* Connect USB cable to main board
-
-Ending result should look like next (if you do not need glitch ports)
-![Image of ChipWhisperer package](pictures/chipwhisperer_connected.jpg "ChipWhisperer ready to use")
-
-Numbers in image are marking next ports:
-1. Measure ports
-2. Glitch ports
-3. Serial cable ports
-4. USB port
-
-**NOTICE: Handle device with carefully. Static electricity might be harmful to board. Some ports might be little tight, but device still should be able to be assembled without excessive usage of force.**
-
-More detailed documentation of the device can be found from http://wiki.newae.com/CW1173_ChipWhisperer-Lite , but it should not be needed for basic tasks.
-
-## Software setup
-
-In this lab we will use ChipWhisperer software version 5.2.1, which runs in the Jupyter Notebook.
-There exists setup with virtual machine and that is recommended way to use it in this course.
-Download link(s) to that virtual machine can be found on Moodle.
-
-### Course VMWare virtual machine (OVA import)
-
-Download (link in Moodle) virtual machine. Open OVA file and wait for it to get imported. Fist import might fail, but just click "Retry".
-
-On first run, you must login virtual machine (user/password: vagrant/vagrant)
-and run command `ip address` to get the connectable address of Jupyter Notebook. Use that address in your browser
-with port 8888. Password for jupyter is "jupyter".
-
-On next logins, you do not have to login to virtual machine, server is running without login and address should be the same.
-
-* Device might not connect correctly if you do not give correct USB Controller setting on virtual machine settings (Use USB Compatibility 2.0)
-
-### Course VirtualBox machine
-
-Download (link in Moodle) and start virtual machine and connect localhost:8888 with your web browser. Password for jupyter is "jupyter".
-
-* If your connection fails when you try to connect your board first time, you may have to download and install VirtualBox extensions to make USB connection to work. 
-
-### Clear VirtualBox machine
-
-You can use clear virtual machine from ChipWhisperer GitHub too. Download virtual machine from [GitHub](https://github.com/newaetech/chipwhisperer/releases/tag/5.2.1)
-and run it (you may have to set up password yourself on first startup). New version (5.3) is released, but take version 5.2.1. Login to virtual machine (user/password: vagrant/vagrant),
-setup Jupyter password and reboot. Connect localhost:8888 with your web browser.
-
-* If your connection fails when you try to connect your board first time, you may have to download and install VirtualBox extensions to make USB connection to work. 
-
-### Other
-
-If you already have instance of Jupyter Notebook running on your system, then feel free just to install ChipWhisperer software on it.
-
-If you want to make custom installation on your machine follow instructions [here](https://chipwhisperer.readthedocs.io/en/latest/installing.html).
-
-These options have not been tried, so no guarantees about those (but there should not be any reason why that should not work either).
-
-## Remote ChipWhisperer machine
-
-This year we are testing for the first time remotely usable ChipWhisperer setup that can serve multiple users simultaneously.
-
-Contact course assistants to receive your username, private key and instructions to connect to the system.
-
-You need university account to perform SSH jump to reach the server.
-
-When you connect system, device is allocated to you and virtual machine using the device is automatically started for you. This means that you do not have to install anything or worry about borrowing device at all. Sounds great, right? This is tried first time so let's see how well it will work.
-
----
-
-# Tasks
-
-Start your work from Task 1 and proceed to harder ones. Every task is designed to require more skills and amount of work than previous one.
-
-Task 1 and 2 together are designed to take about 4+ hours to complete. Try to finish those at lab session. You can borrow equipment if you want to continue working with those tasks at home.
-
-Tasks 3 and 4 are more laborious and it is likely that those can not be done in time limit of single lab session. You must discuss about borrowing equipment with lab assistants if you want to do those tasks.
-
-Read task instructions carefully before starting to work to have clear picture about what you are supposed to do. Every task should be clearly stating what you are expected to do and return.
-
-Most of the tasks are based on ChipWhisperer tutorials which are located in folder */jupyter/*. Programs running on the target device are located at */hardware/victims/firmware*.
-
-**If you are doing this work in group, remember to mark down clearly which of you participated on which tasks**
-
-## Task 1
-
-Task 1 tasks are meant to be relatively simple tasks to help you understand that what is the Chipwhisperer device and what can be done with it. You will learn how to connect the board, inspect power traces and use ChipWhisperer analyzer program.
-
-ChipWhisperer software and tutorials utilize Jupyter Notebook. Everything is packed in ready-to-run virtual machine which can be found on university drive or Chipwhisperer github page.
-
-If you have not used Jupyter Notebook before, it can be beneficial to complete tutorial !!Introduction_to_Jupyter!!.ipynb
-
-## A) Getting started with device, jupyter and SimpleSerial protocol
-
-**Complete ChipWhisperer basic tutorial named *PA_Intro_1-Firmware_Build_Setup.ipynb*.** Purpose of this part is simply to give you some experience of the basic usage of ChipWhisperer which is required in later tasks of this lab exercise.
-**You are not required to return anything for this task**, but it is critical that you learn to use ChipWhisperer on basic level because otherwise all other tasks are very difficult to complete. Basically important things what you will be doing in that tutorial are next:
-
-1. Learn what is SimpleSerial
-2. Build basic example (**Notice: Target platform is type CW303 and you have to build program for that platform. You have to ensure this in all of the tasks of this lab.**)
-3. Modify basic example and rebuild it
-4. Use scripts to connect (and disconnect) the device
-5. Upload built example to the target device and capture traces and input&output text
-
-If you have never used Jupyter Notebook before, consider doing tutorial *!!Introduction_to_Jupyter!!.ipynb* first.
-
-__TIPS & TRICKS__
-* You might have to unplug & plug USB cable again if computer or the capture software does not recognize the device. You also might have to unplug & plug device from virtual machine top right corner to make it detect it.
-* Notice that you have to be connecting serial cable and measure ports, glitch port is not needed in this task.
-* Beware of static electricity. Discharge of static electricity can be harmful to board.
-
-## B) Inspecting power differences of simple operations
-
-Next we will inspect how the different operations on victim affect to the power consumption of it. As you already intuitively know, not every operation processor performs is equal: Some operations are more complex than others, causing them to consume more power and clock cycles than other operations. By measuring power consumption from target, therefore we can deduce what operation is performed and when.
-
-**This task is completed by doing tutorial *PA_Intro_2-Instruction_Differences.ipynb*** and analyzing produced results. Do the sections 1.1-1.4 of the tutorial to familiarize yourself with modifying code and plotting and inspecting traces.
-
-After completing simple loop comparison tests, we will inspect power differences between single instructions:
-
-Edit previously modified code (all codes for the victims are located at *hardware/victims/firmware/*) to contain single NOP an MUL instructions like this:
-
-
-```c
-/**********************************
- * Start user-specific code here. */
-trigger_high();
-
-//16 hex bytes held in 'pt' were sent
-//from the computer. Store your response
-//back into 'pt', which will send 16 bytes
-//back to computer. Can ignore of course if
-//not needed
-
-asm volatile(
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-"nop"       "\n\t"
-::
-);
-
-asm volatile(
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"          
-"mul r0,r1" "\n\t"
-"mul r0,r1" "\n\t"
-::
-);
-
-trigger_low();
-/* End user-specific code here. *
- ********************************/
-
+Explain how the correlation power analysis works. You may use questions given in task as template of your answer.
+```
+The correlation power analysis attack is an attack which allows the attacker to find a secret encryption key stored on a victim device.  
+It can be done in 4 steps:  
+- Capture the power traces: a loop will load some new plaintext and send the key and the plaintext to get the power traces. The convert traces will be stored to be analyzed.  
+- Calculating correlation: a S-box (substitution box) is defined. It makes the link between the key and the plaintext. The Pearson correlation coefficient between the modeled and actual power consumption is calculated for each data point of the trace. Then, we function is defined to return the output of the S-box according to every single byte of input and every single byte of the guessed key. All the "1" bits will be counted.   
+- Performing the check: all the subkeys with the biggest correlation will be kept. So they are the subkeys that best matche with data. Then, all the subkeys are assembled to form the solved key.   
+A optional step can be added to check if the guess was right.  
+It's important to ranking the output of the correlation equation to determine the most likely key, to be sure that the key that we found is the right.  
+AES (Advanced Encryption Standard) is an algorithm that serves to encrypt electronic data. By sending plaintext and key, we can analyze the output because it uses a fixed box. The encryption will always stay the same.   
+By doing a correlation between each byte of input and of the guessed key, we can take the maximum of correlation for each subkey.  
+A subkey is calculated thanks to the Pearson correlation coefficient for a sample.   
+In the numerator we have a difference between the guess for power consumption of the subkey of the trace number and the average guess for power consumption of the subkey multiplied by the difference between the trace of the sample point of the trace number and the average trace of the sample point, all in the sum for each trace number.   
+Then, in the denominator, we have two sums for each trace number multiplied together under a square root.  
+The first sum is the difference between the guess for power consumption of the subkey of the trace number and the average guess for power consumption of the subkey. This difference is squared.   
+The second is the difference between the trace of the sample point of the trace number and the average trace of the sample point. This difference is squared too.   
+Partial Guessing Entropy (PGE) determines the rank of the correct answer. The PGE increase when we don't use all possible traces. But our PGE is equal to 0 so we can say that our end result completely right.  
 ```
 
-Above code performs first 10 NOP (no-operation) instructions and after that 10 MUL (multiplication between registers r0 and r1).
-
-Remember always that anytime you make modifications to program, you have to rebuild it and reprogram the device. Also make sure that you are uploading correct program to device.
-
-Inspect results when you change amount of instructions / add more blocks of different instructions. Try to detect different instructions executing from the trace.
-
-> You can use different gain setting (25 should be fine) to make trace more readable
-
-> Remember that your device is ChipWhisperer Lite and target CW303, so always use `SCOPETYPE = 'OPENADC'` and `PLATFORM = 'CW303'` as settings
-
-### What to return in this task?
-
-Make program consisting of varying amounts of NOP and MUL blocks containing at least 40 instructions of total and several instruction blocks mixed.
-
-For example 15 x NOP, 15 x MUL, 10 x NOP, 10 x MUL could be complex enough.
-
-Take screenshot of resulting trace and add textual description / draw on image where are those instructions happening ("From sample x to y there executes 10 instructions of z" etc).
-
-Add answer to return template.
-
-> Remember also that you must disconnect device from one notebook with
-> ```Python
-> scope.dis()
-> target.dis()
-> ```
-> before using device with next tutorial
-
-
-## C) Breaking AES
-
-Previous task considered power differences between single operations, which might not be very practical itself. However this task will be hopefully more interesting and related to real world than basic inspection of single operations.
-
-In this task we are going to break AES with Correlation Power Analysis attack.
-
-**This task is done by completing ChipWhisperer tutorial *PA_CPA_2-Manual_CPA_Attack.ipynb*** and explaining theory behind attack.
-
-There exists also tutorial *PA_CPA_1-Using_CW-Analyzer_for_CPA_Attack.ipynb* which uses pre-existing utility scripts of 
-ChipWhisperer Analyzer software, but we will do this task more low-level way (feel free to complete that tutorial too if you like fancier outputs!).
-
-More common information about AES can be found [here](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
-
-If you have no access to device, you can ask saved project containing necessary traces from your friend or course assistant.
-
-### What to return in this task?
-Next 2 things:
-
-**Screenshot of your attack successfully solving the key**
-
-**Explain how the correlation power analysis attack that you just performed works.**
-
-Theoretical information about the attack you just performed can be found here http://wiki.newae.com/Correlation_Power_Analysis Tutorial you just completed contain already quite technical description what is happening in attack.
-
-Your answer does not have to be in any certain "format" or any minimum length. Only requirement is that it explains issue well and shows that you have really investigated attack you performed deeper than surface level.
-
-If you have troubles in your writing, you can consider next list of questions as your checklist. Finding answers to those questions should produce decent overall result.
-* What are major steps of the correlation power analysis attack you just performed? Explain each phase shortly.
-* What sensitive point of AES algorithm implementation targeted in this attack? Describe sensitive point and the power leakage model used to attack it.
-* How is single subkey solved? Describe the calculations performed when attack tries to solve single subkey.
-* Did you manage to find out correct encryption key as end result? Was end result completely right or were some subkey guesses wrong? If yes, discuss reasons of it and how could it be possible to fix.
-
----
 # Task 2
 
-In task 2, there is 2 tasks which require closer analysing of power traces with small Python scripts.
+### Password bypass with power analysis
 
-You will learn how to pass simple password check by power analysis and how to solve RSA private key bits by measuring execution time.
+We just change the *checkpass* function:  
+```python
+def checkpass(trace, i):
+        return trace[117 + 36 * i] < -0.2
+```  
+To find these numbers, we firstly tried with one letter and compared it with the *h*. We found an isolated green spike under -0.2 and we have retained its value.  
+Then, we do the same but for the second letter (so the wrong password was the first letter right and the other wrong). We searched the same green spike and we also retained its value.  
+We made a difference between these two and we did the same for the 3rd letter.  
+We checked the difference to see if the previously calculated difference was correct.  
+We then put the numbers into the function and managed to find the password.   
 
-## A) Password bypass with power analysis
-In this task you will break in to secure device by analysis of the power traces of device when it processes your login attempts.
+Screenshot after your script has correctly solved the password
 
-Program to be hacked is simple: It prints initial information, waits for user to input login password and check if it is right. If it is, program prints welcome text and lights up green led. If not, program reports failure and red led turns on.
+<details>
+  <summary>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>  
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+Success, pass now h<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+  </summary>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+Success, pass now h0<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+Success, pass now h0p<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+Success, pass now h0px<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+WARNING:root:SAM3U Serial buffers OVERRUN - data loss has occurred.<br>
+Success, pass now h0px3<br>
+  </details>
 
-Program compares inputted password against correct password character by character and ends comparing if wrong character is encountered. This kind of process is obviously vulnerable against timing attacks. In this program, timing attack is countered by adding random wait time after failed password input.
+### Breaking RSA
 
-Catch here is that login system is still vulnerable to power analysis, which will be utilized here. With power analysis, we can see every character being processed and therefore we can determine when program hits the wrong character.
+__Insert your attack script here__
+The parts of the code that we changed for the 8ABO key:  
+```python
+import numpy as np 
+start = 3600
+rsa_one = trace[start:(start+80)] #was 500      
+diffs = []
+for i in range(0, len(trace)-len(rsa_one)):
+    diff = trace[i:(i+len(rsa_one))] - rsa_one    
+    diffs.append(np.sum(abs(diff)))
+    
+plt.figure()
+plt.plot(diffs)
+plt.title('SAD Match for RSA')
+plt.ylabel('SAD Difference')
+plt.xlabel('Offset')
+```
+```python
+import numpy as np 
 
-This task is completed by completing tutorial *PA_SPA_1-Timing_Analysis_with_Power_for_Password_Bypass.ipynb* and succeeding in the breaking full password with simple power analysis. You do not have to do part 1.8 of the same tutorial considering SAD approach to this task.
-
-Scripts for making password bypass attack are provided in tutorial, but values in them are not correct for your device, and you have to solve those yourself to make your attack working.
-
-__HINT__: You can use password guesses where the first letter is wrong, then the second etc. This should give you an idea how the power trace differ with different inputs. You can easily compare traces with different inputs by modifying next provided code:
-
-```Python
-%matplotlib notebook
-import matplotlib.pylab as plt
-
-trace_correct = cap_pass_trace("h0px3\n")
-trace_wrong   = cap_pass_trace("xxxxx\n")
-
-     
-plt.plot(trace_wrong, 'r')
-plt.plot(trace_correct, 'g')
+times = np.where(np.array(diffs) < 2)[0]  # 20.4 < x <   21 was good fo  16 bit 
+deltalist = []
+for i in range(0, len(times)-1):
+    delta = times[i+1] - times[i] #was 1
+    deltalist.append(delta)
+```
+```python
+import numpy as np 
+key = ""
+times = np.where(np.array(diffs) < 2)[0]
+for i in range(0, len(times)-1):
+    delta = times[i+1] - times[i]
+    #print(delta)
+    if delta > 800:
+        key += "1"
+    else:
+        key += "0"
+key += "0"
+print(key)
+print("%04X"%int(key, 2))
+```
+For the ABE3 key, we changed the key and the last bit which can not be discovered (see image below):  
+```python
+key = bytearray([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xAB, 0xE3])
 ```
 
-__HINT__: Notice that you might speed up testing some amount by putting known correct characters earlier to testing list. Notice that you should still put some incorrect character as first of the testlist. Otherwise you might end up in the situation during testing that your wrong code selects always the first character of your list, but because it happens to be correct one, you might think that code is right.
+__Sceenshot demonstrating solved keys here__
 
-Your ending result (and requirement to gain points from this task) should be script which automatically solves whole password for you.
+For the 8AB0 key:  
+![image](images/sad_match_RSA.PNG  "SAD match RSA grafic")  
+![image](images/comparaison_RSA.PNG  "Comparaison of RSA Execution Time graphic")  
+![image](images/result_8AB0.PNG  "Solved key 8AB0")  
+For the ABE3 key:  
+![image](images/result_ABE3.PNG  "Solved key ABE3") 
 
-### What to return in this task?
+__You were asked question about solving last bit of key, insert answer here__
 
-You must return next 2 items to return template to gain points from this task:
-1. Your working attack script. You can just return just the part(s) you modified in that provided attack code.
-2. Screenshot of output after your code has successfully solved correct password.
-
-## B) Breaking RSA
-In this task you will explore the principles of breaking RSA implementation by analysing power traces. Basic idea is to detect conditional code branch execution from power trace and then deduct the private key that device uses internally.
-
-First we discuss about theory of attack against RSA implementation and after that instructions for this task and what to return are given.
-
-### Theory
-
-First, if you do not know what is RSA, you can find basic information about if from https://en.wikipedia.org/wiki/RSA_(cryptosystem).
-
-This is some code from RSA implementation from avr-crypto-lib
-```C
-uint8_t rsa_dec_crt_mono(bigint_t* data, const rsa_privatekey_t* key){
-	bigint_t m1, m2;
-	m1.wordv = malloc((key->components[0].length_B /* + 1 */) * sizeof(bigint_word_t));
-	m2.wordv = malloc((key->components[1].length_B /* + 1 */) * sizeof(bigint_word_t));
-	if(!m1.wordv || !m2.wordv){
-		//Out of memory error
-		free(m1.wordv);
-		free(m2.wordv);
-		return 1;
-	}
-	bigint_expmod_u(&m1, data, &(key->components[2]), &(key->components[0]));
-	bigint_expmod_u(&m2, data, &(key->components[3]), &(key->components[1]));
-	bigint_sub_s(&m1, &m1, &m2);
-	while(BIGINT_NEG_MASK & m1.info){
-		bigint_add_s(&m1, &m1, &(key->components[0]));
-	}
-
-	bigint_reduce(&m1, &(key->components[0]));
-	bigint_mul_u(data, &m1, &(key->components[4]));
-	bigint_reduce(data, &(key->components[0]));
-	bigint_mul_u(data, data, &(key->components[1]));
-	bigint_add_u(data, data, &m2);
-	free(m2.wordv);
-	free(m1.wordv);
-	return 0;
-}
+```
+To find the right key with the ABE3 key, we changed manually the last bit of the binary number of the key (as you can see on the picture above).  
+This bit was fixed to 0 because we are not able to read it, so we need to adjust it according to the desired result.  
+We can't get the last bit of the RSA key because in the for loop (last part of the code), we calculate the delta and for the last bit, delta is null so we can't have the last bit.  
 ```
 
-You notice that `bigint_expmod_u` is called with private key material. Next we look at source code of it.
-```C
-oid bigint_expmod_u(bigint_t* dest, const bigint_t* a, const bigint_t* exp, const bigint_t* r){
-	if(a->length_B==0 || r->length_B==0){
-		return;
-	}
-
-	bigint_t res, base;
-	bigint_word_t t, base_b[MAX(a->length_B,r->length_B)], res_b[r->length_B*2];
-	uint16_t i;
-	uint8_t j;
-	res.wordv = res_b;
-	base.wordv = base_b;
-	bigint_copy(&base, a);
-	bigint_reduce(&base, r);
-	res.wordv[0]=1;
-	res.length_B=1;
-	res.info = 0;
-	bigint_adjust(&res);
-	if(exp->length_B == 0){
-		bigint_copy(dest, &res);
-		return;
-	}
-	uint8_t flag = 0;
-	t=exp->wordv[exp->length_B - 1];
-	for(i=exp->length_B; i > 0; --i){
-		t = exp->wordv[i - 1];
-		for(j=BIGINT_WORD_SIZE; j > 0; --j){
-			if(!flag){
-				if(t & (1<<(BIGINT_WORD_SIZE-1))){
-					flag = 1;
-				}
-			}
-			if(flag){
-				bigint_square(&res, &res);
-				bigint_reduce(&res, r);
-				if(t & (1<<(BIGINT_WORD_SIZE-1))){
-					bigint_mul_u(&res, &res, &base);
-					bigint_reduce(&res, r);
-				}
-			}
-			t<<=1;
-		}
-	}
-
-	SET_POS(&res);
-	bigint_copy(dest, &res);
-}
-```
-
-If you look closely at variable `t` in the loop, you can see that it contains the private key which is shifted one bit left on every round. Next code compares if it has 1 or zero as MSB.
-```C
-bigint_square(&res, &res);
-bigint_reduce(&res, r);
-if(t & (1<<(BIGINT_WORD_SIZE-1))){
-	bigint_mul_u(&res, &res, &base);
-	bigint_reduce(&res, r);
-}
-```
-
-This is execution dependent on our private key, and if we can deduce which branch is executed, we could determine the private key bits one by one!
-
-### Task
-
-**This task is completed by doing ChipWhisperer tutorial *PA_SPA_2-RSA_on_XMEGA_8bit.ipynb***. You will be doing only SAD-based attack part of it (so you do not have to do part 1.5).
-
-Custom version of RSA is used in this task. It has stripped version of RSA decryption algorithm, which is running only the vulnerable part of decryption algorithm and using only last 16 bits of private key. You may read code from *hardware/victims/firmware/simpleserial-rsa/simpleserial-rsa*.
-
-Follow the tutorial and solve encryption key by finding reference sample and measuring execution time of encryption loops as instructed.
-
-Notice that sample and delta values in tutorial are most likely producing bad SAD match plot and wrong overall results. You are required to inspect traces yourself as you see fit and find correct values yourself.
-
-> **NOTICE:** Command ```fw_path = '../hardware/victims/firmware/simpleserial-rsa/simpleserial-rsa-CWLITEXMEGA.hex'``` in the beginning of the tutorial points to nonexistent binary when you use CW303 as platform. Change this command accordingly.
-
-**Hints:**
-* Closely inspect to try find nice reference pattern for SAD calculation. Easily distinguishable close-to-zero spikes mean that good match is found.
-* Pay attention how many matches are found/needed
-
-### What to return in this task?
-
-**After you have working attack, fill next answers to return template**
- 
-1. Your attack code (parts you had to modify yourself are enough) and screenshot demonstrating it outputting correct result.
-2. Thought-out answer to next question: *Can you solve the last bit of 16-bit key with provided code? You can try re-record trace with key ABE3 and try to solve key from that trace. If not, tell why it did not work. How would you make it work? Note that you do not have to implement your answer, just telling that how you would do it is enough.* (HINT: Consider the amount of close-zero spikes you have in your SAD plot)
-
----
 # Task 3
-
-A glitching attacks utilize intentional faults to undermine device security. These faults can for example cause instruction skipping, malformed data reads / write backs and instruction decoding errors.
-
-In this task you will learn basic fault injection to device to make it behave unintended way: Skipping login prompts, overreading buffers and injecting faults to encryption algorithms to reveal private key are all possible with skilled glitching!
-
-> **Remember to attach SMA cable to glitch ports of the device before starting.**
-
-> Remember to use `PLATFORM = 'CW303'` as platform setting when you compile your code for the target
 
 ## A) Introduction to clock glitch attacks
 
-**Fist task is to pass simple clock glitching tutorial *Fault_1-Introduction_to_Clock_Glitch_Attacks.ipynb***. In this tutorial you will learn what is clock glitching and you will find suitable glitching parameters for your device to be used in later tasks.
+**Screenshots of successful glitching of the functions `glitch1()` and `glitch3()`**
 
-Tutorial is rather straightforward, but searching of the glitch parameters can take some time. Go and grab cup of coffee while search is running.
-
-Tutorial offers working attack code for function `glitch3()`, but code uses tnrange function that does not support decimal step ranges.
-You likely have to modify code to support smaller steps to make attack work.
-This can be done easily by using `arange` from `numpy` instead of `tnrange`.
-Add additional print inside loop to follow execution of code in this case.
-
-Notice also that in provided attack code contains next:
-```Python
+![image](images/success_glitches_diagram_2.PNG  "Diagram of the success glitches")
+![image](images/all_glitches.jpg  "List of all glitches found")  
+Code changes:  
+```python
 if PLATFORM == "CW303" or PLATFORM == "CWLITEXMEGA":
-    pass
+    offset_range = Range(5.07, 5.08, 0.00001) 
+    width_range = Range(-5.47, -5.45, 0.00001)
 ```
-This is obviously not working and you have to add code to it yourself.
-
-You can consider yourself successful when you manage to glitch trough functions `glitch1()` and `glitch3()`. Take screenshots of your success and put those in the return template. Important in this tutorial is to find correct parameters for glitching for the future usage and accustome yourself to clock glitching.
-
+```python
+for width in np.arange(width_range.min, width_range.max, width_range.step):
+    scope.glitch.offset = offset_range.min
+    for offset in np.arange(offset_range.min, offset_range.max, offset_range.step):
+```
+![image](images/glitching_success.jpg  "Glitching successful")
 
 ## B) Buffer glitch attack
 
-**In this task you will complete tutorial *Fault_3-Glitch_Buffer_Attacks.ipynb***. Do parts 1.1-1.3, which concentrate on attacking unsafe assebly code.
 
-Sections 1.1 and 1.2 are just introduction to this task and you do not have to return or answer anything from them.
-Section 1.3 is considering actual attack and main point of this task.
+**Paste the screenshot of successful glitch result here**
 
-Attack code is already provided and it most likely works without additional tweaking, so this part should be quite straightforward.
-After being successful in attack (section 1.3), take screenshot of results and answer following additional questions in your return template.
+![image](images/resutl_glitch_3B.PNG  "Glitched terminal here")
+![image](images/resutl_glitch_3B_example.PNG  "Glitched terminal here")
+![image](images/resutl_glitch_3B_example_2.PNG  "Glitched terminal here")
 
-> You can tune tried glitch parameters to the ones that you retrieved in the last task
-
-> You can improve glitch parameter testing by using `arange` from `numpy` instead of `tnrange` as you probably did in last task.
-
-**Additional questions:**
-
-When you manage to glitch decrypted data out of the device with given attack code in section 1.3, consider next:
-
-Attack is based on the vulnerable code created by compiler optimizations.
-
-Change loop counting variable ``i`` from line 140 of ``bootloader.c`` (the vulnerable part where glitch attack targets) to form
-
-```c
-volatile int i;
+**Additional questions:**  
+![image](images/comparaison_files.PNG "Comparaison between assembly code before and after the change")
 ```
+The volatile keyword indicates to a compiler that there could be external processes that could possibly alter the value of that variable. Without it, the variable would not always have the right value because it couldn't be updated. With the volatile keyword, we get always the latest value of the variable.  
+The two codes are almost identical but the one with the volatile variable will work with the memory addresses instead of their values.  
 
-Look at file `bootloader-CW303.lss` before and after recompilation. Answer next questions to your return template:
-How does the assembly code change (how assembly look before/after) at changed part? What happens if you manage to find new loop ending place and make successful glitch to it?
-Is similar attack against this kind of code possible anymore? If not, how attack could be evolved? (you do not have to implement your ideas)
+We found a good description of the problem on the following link:  
+https://stackoverflow.com/questions/1665452/volatile-variable
+"volatile just tells the compiler or force the compiler to "not to do the optimization" for that variable. so compiler would not optimize the code for that variable and reading the value from the specified location, not through interal register which holds the previous value.
+
+So, by declaring variable as volatile.. it gives garrantee that you will get the latest value, which may be alterred by an external event.
+
+your code may be work fine if haven't declare that variable as volatile, but there may be chance of not getting correct value sometimes.. so to avoid that we should declare variable as volatile."
+```
 
 ## C) Differential Fault Analysis on AES
 
-You already broke AES implementation key in task 1C, but there is more ways to steal private key from the device.
+**Paste screenshot of successful results here**
 
-In this task you will inject faults into specific place of running algorithm and compare outputs to non-faulty encryption runs in order to determine private key information
+```
+To do a Differential Fault Analysis attack, we inject some faults and we observe the difference between the correct output and the faulty outputs. We run several times the same AES encryption, with the same key and the same plaintext input. Then, by analyzing correct/faulty output pairs and comparing them, we can retrieve the cryptographic keys.  
+To be able to succeed in the attack, we must find the right parameters (for the offset and the extoffset) for the clock glitches. 
+```  
+![image](images/3C_1.PNG "Full AES execution diagram")  
+```
+We found that the extoffset must be done before the two MixColumn operations for the 8 and between the round 8 and 9 for the 9.  
+So for the 9th round attack, we put this range: (13200, 13250) and for the 8th round, we put: (11000, 11500).  
+For the 8th round, we found some true keys with an offset range of (-12, 12):  
+```
+![image](images/3C_round8.PNG)  
+```
+There are some interesting keys but none was satisfactory.  
+For the 9th round, we get always false keys.  
+We tried many different offset ranges (larger, smaller, around zero, in negative or positive numbers,...) but none of them gave us the key to the different rounds (even with different extoffsets).  
+The MixColumn operation is an important operation for AES which makes it safe, so it's for this reason that we attack round 8 and 9 and not round 10.  
+The difference between the two attacks is that we don't attack at the same position: one before the two MixColumn operations (for the 8) and one between the 2 rounds (for the 9).  
+Solving the round key is interesting because we can revert the AES keyscheduling and reveal the actual AES key.  
+```
 
-Main steps of AES are nicely described in [Wikipedia article](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
 
-**In this task you will be completing tutorial *Fault_4-AES_Differential_Fault_Analysis_Attacks.ipynb*.**
-Tutorial contains rather straightforward descriptions and scripts for this attack, but glitch parameters and the correct place of execution to be glitched are wrong (consecutively handy plot drawing places of 8th, 9th and 10th round execution is wrong too).
-You must find correct places to glitch yourself (for example between last 2 MixColumn steps for 9th round key as described in tutorial)
-and you can use values of width and offset for the glitch from the previous task when you find out those for your device.
-This task may take some time because analysis script needs enough different glitches to solve correct key.
+# Task 4
 
-When you have completed tutorial, take screeshot/copy script output to return sheet to show that you have calculated correct key by injecting faults to correct places of code.
-Specify also the glitch parameters you used in your attack script.
-Also answer shortly to next questions: **Describe shortly how the attack you performed is working. What kind of glitches are hoped to happen? Why certain point for the attack? What is the difference between 8th and 9th round attack? Why solving the round key is interesting?**
+This tasks documentation varies depending on which versio you chose. Create your own documentation as you see fit. List here all the files that are part of your return  
+<br>
+**Option 1. Tutorials** 
+## Task 4A
+<br>
+This attack differs from AES CPA attack. 
+DPA (Differential Power Analysis) is used to recover the key used in the AES encryption, like CPA. But for DPA, it takes multiple traces of two sets of data, then computes the difference of the average of these traces. Then, we get the largest difference to find the best subkey, and it repeates these stages for each subkey.  
+CPA, for its part, aims to reveal data leakage by finding relationships between characteristics of power traces and a hypothesised power model.  
+A ghost peak is a peak that appears when evaluating incorrect key candidates. It's called like that it appears at an unexpected position.  
+![image](images/4A_1PNG.PNG "Peaks diagram")  
+We can see the 5 firsts peaks. There are all spaced by 255.  
+We changed the code so that we don't get any error. Indeed, we had an error because when running, it contunied after 1600 and so there was nothing after because the fifth peak (the yellow one) was at the beginning (with the right offset from the fourth one). We did these changed so that all the peaks will be found.  
+![image](images/4A_2.PNG "Code changes")  
+We tried with different offsets (254, 255, 256) and we found that 11 subkeys were successful with 255 and 256 (only 10 with 254).  
+This is the output with this code for an offset of 254:  
+![image](images/4A_3.PNG "Subkey results")  
+So 7 subkeys were not found.  
+![image](images/4A_4.PNG "Wrong peak example")  
+For the nineth peak, we can see with our formula that we find 235. But according to the graph, this peak must be at 244.  
+To get all the right subkeys, it could take some times to find the right formula and the right offset.  
 
-> This task has been proven little tedious, so small hints could be needed:
-> 
->Do not overextend amount of captures, under 1000 or even 500 from right place should be successful.
->Most important thing to be right is to get ```extoffset_range``` right, because glitching must happen in right place to make this work at all.
->About 500 samples wide area should be enough for that. For ```offset_range``` you could use previously found values which produce decent amount of glitches.
->```glitch_repeat``` should be ok at 5 and for ``width_range`` something between 6\*MIN_STEP and 8\*MIN_STEP could be tried.
->
->Notice that glitching is tedious process and even these hints may not help you at all.
->If even exhaustive attempts do not bring success, consider moving to task 4 instead. Those are not easy either, but doing those should be more "predictable" by nature.
-
----
-# Task 4 
-
-Still want something more complex? Choose the option you like and start pushing forward and write report about it. Notice that this task is most likely more challenging and laborius than previous ones (as you probably already guessed).
-
-There is no answer template for these tasks. Option 1 has some more specific advice what to return, but remember next advice if you do other options:
- * Report must clearly show the all work you did. Otherwise it would be really hard to give you any kind of grade.
- * Also remember that even if long and exhaustive report is usually considered as good, you do not have to be *too* exhaustive. We would like to see students use their time to do interesting experiments rather than using time to write overly long reports. You yourself decide what is important to tell and what is not.
- * Notice that even failed attempts might give you some points if report shows that your try was well thought out.
-
-## Option 1. Tutorials
-
-* Complete tutorial *PA_DPA_3-AES_DPA_Attack.ipynb*. Tutorial explains quite well what is happening, but the code solving ghost peak problem is not working as intended.
-You have to find out why and then write working code (not huge amount of changes needed!). Return at least next items/answers:
-    * How this attack differs from AES CPA attack? Explain shortly
-    * Why do ghost peaks exist? Explain shortly
-    * Your working code (notice that it still might not be able to solve perfectly ALL bytes of key)
-    
-* Complete tutorial *PA_Profiling_1-Template_Attacks_HW_Assumption.ipynb*. Tutorial is rather straightforward and fast to complete,
-but it solves just first byte of the key and it uses Hamming Weight calculations. Your task is to create attack code
-that will solve whole key and without Hamming Weight modeling. End of tutorial has some advice to it. Return at least next items/answers:
-    * How this differs on DPA and CPA attacks against AES? Explain shortly
-    * Your working attack code, which solves full key without Hamming Weight calculations
-    * How many template traces are needed to solve key reliably with just single trace from target? Is amount feasible? Experiment yourself.
-        * Look what kind of results you will have with different amount of template traces and when more than single attack trace is used. Are guesses improving and how fast? Is it feasible to achieve "single trace capture success" in the sensible time?
-
-**NOTICE:** When capturing huge amount of traces (20k+), default 2GB RAM for virtual machine is most likely not enough (some crashes has occurred).
-Consider allocating at least 4GB or more RAM.
-
-These tasks do not have return template so you have to create your own. Do not limit yourself to above questions/items:
-You can tell anything that feels relevant in your return template (e.g. any problems encountered or other ideas about possible solutions).
-
-## Option 2. Glitch or analyze your own target hardware
-
-Alternatively you can attempt to glitch or analyze your own device. For example there is a [tutorial how to glitch raspberry pi](https://wiki.newae.com/V4:Tutorial_A3_VCC_Glitch_Attacks#Glitching_More_Advanced_Targets:_Raspberry_Pi) or how to [glitch LPC1114.](http://wiki.newae.com/Tutorial_A9_Bypassing_LPC1114_Read_Protect) Feel free to search examples from internet or ChipWhisperer wiki for ideas for additional targets. Document your process. Tell what kind of own experiments you tried or tutorial/blog post/etc you tried to repeat, how you did it and did you succeeded or not.
-
-__Note:__ **If you decide to glitch/analyze external device you are responsible for the target device. We are not responsible if you brick your device by glitching it**
-
-## Option 3. Your choice
-If you have some other topic that uses ChipWhisperer or is related to hardware security and you are interested on trying it you can do it and document the process and the results. For example, you could look for ideas presented in ChipWhisperer tutorials and theory articles and think how you could use them in your experiments. Notice that to be accepted as task 4 your own idea must be about equal level of required skill and workload than option 1 and 2 are. __REMEMBER:__ before you do your special idea please contact the assistants and make sure that the topic is ok.
-
-Notice that you can also just go and ask any additional ideas from course assistants. They might have some interesting basic ideas which are yet not so refined that those could be proposed in this documentation. But they are happy to share them with you and it is up to you to further refine idea.
+## Task 4B
+The template attack require more setup than CPA attacks. To perform a template attack, the attacker must have access to another copy of the protected device that they can fully control. This is why we captured many traces to create a copy of the system.  
+To solve this task, we implemented following algorithms:  
+```
+capture 25k traces  
+building a template based on these values by trying our own key bytes  
+-> for each byte position, each bytes (0 to 255) * 16 (for key position)  
+After this, we can used matrix for comparing the traces.  
+Then compare each position on the power trace to find the right byte.  
+```
+![image](images/Solution_with_hamming.PNG)  
+The minimum amount of traces we need is just to get a good copy as more traces we captured as better the copy is we get.  
+Sadly because  we lost so must time during setup (2 days) and the problem with task 3C we are not able to solve the last very well and we just can provide the idea of the algorithm and we can't implement it by our one. Maybe it could be helpful for future students to add the comments: USB 2 should be used but if you have access to USB 3 it's even more faster.  
+It's recommended to use the PCs of the university because some PCs have problems with normally USB connection to the device.  
